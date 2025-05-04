@@ -20,7 +20,8 @@ export const register = async (req, res) => {
     try {
         const existingUser = await db.user.findUnique({ where: { email } });
         if (existingUser) {
-            return res.status(400).json({ error: "User already exists" });
+            return res.status(400).json({ message: "User already exists" });
+
         }
 
         const otp = String(Math.floor(100000 + Math.random() * 900000));
