@@ -11,11 +11,12 @@ app.use(urlencoded({extended:true}));
 app.use(cookieParser());
 
 app.use(cors({
-  origin: 'https://auth-frontend-do38.vercel.app/',
+  origin: 'https://auth-frontend-do38.vercel.app', // no trailing slash!
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
+
 
 app.get('/', (req, res) => {
   res.send('RJ is here')
