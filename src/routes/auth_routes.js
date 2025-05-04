@@ -9,7 +9,7 @@ authRoutes.post("/login" , login)
 
 authRoutes.post("/logout" ,userAuth, logout)
 
-authRoutes.get("/send-verify-otp" ,  sendVerifyOtp)
+authRoutes.post("/send-verify-otp" ,  sendVerifyOtp)
 
 authRoutes.post("/verify-account"  ,  verifyOtp)
 
