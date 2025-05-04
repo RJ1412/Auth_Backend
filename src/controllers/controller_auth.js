@@ -190,49 +190,55 @@ export const login = async (req, res) => {
 };
 
 
+
 export const sendVerifyOtp = async (req, res) => {
     try {
-        const { email } = req.body;
-
-        const user = await db.user.findUnique({ where: { email } });
-        if (!user) {
-            return res.status(400).json({ error: "User Not Found" });
-        }
-
-        if (user.IsVerified) {
-            return res.status(400).json({ message: "User Already Verified" });
-        }
-
-        const otp = String(Math.floor(100000 + Math.random() * 900000));
-
-        await db.user.update({
-            where: { email },
-            data: {
-                VerificationToken: otp,
-                VerifyOtpExpireAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24h expiry
-            },
+      const { email } = req.body;
+  
+      const user = await db.user.findUnique({ where: { email } });
+      if (!user) {
+        return res.status(400).json({ error: "User Not Found" });
+      }
+  
+      if (user.IsVerified) {
+        return res.status(400).json({ message: "User Already Verified" });
+      }
+  
+      const otp = String(Math.floor(100000 + Math.random() * 900000));
+  
+      await db.user.update({
+        where: { email },
+        data: {
+          VerificationToken: otp,
+          VerifyOtpExpireAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24h expiry
+        },
+      });
+  
+      const otpEmail = generateEmailTemplate("otp", {
+        name: user.name,
+        otp,
+        expires: "24 hours",
+      });
+  
+      try {
+        await transporter.sendMail({
+          from: process.env.SENDER_EMAIL,
+          to: email,
+          subject: otpEmail.subject,
+          html: otpEmail.html,
         });
-
-        const otpEmail = generateEmailTemplate("otp", {
-            name: user.name,
-            otp,
-            expires: "24 hours",
-          });
-          
-          await transporter.sendMail({
-            from: process.env.SENDER_EMAIL,
-            to: email,
-            subject: otpEmail.subject,
-            html: otpEmail.html,
-          });
-
-
-        res.json({ message: "Verification mail sent" });
+      } catch (emailError) {
+        console.error("Error sending OTP email:", emailError);
+        return res.status(500).json({ error: "Error sending OTP email", details: emailError.message });
+      }
+  
+      res.json({ message: "Verification mail sent" });
     } catch (error) {
-        console.log(error);
-        res.status(500).json({ error: "Can't send OTP" });
+      console.log("Error during OTP process:", error);
+      res.status(500).json({ error: "Can't send OTP" });
     }
-};
+  };
+  
 
 
 
