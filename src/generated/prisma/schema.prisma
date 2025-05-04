@@ -1,0 +1,37 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  username          String    @id @unique @default(uuid())
+  name              String?
+  email             String    @unique
+  image             String?
+  phone             String?
+  password          String
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  IsVerified        Boolean?  @default(false)
+  VerificationToken String?
+  VerifyOtpExpireAt DateTime?
+
+  // Relation to coding site links
+  codingSites CodingSite?
+}
+
+model CodingSite {
+  id     String @id @default(uuid())
+  user   User   @relation(fields: [userId], references: [username])
+  userId String @unique
+
+  codeforcesProfile String?
+  codechefProfile   String?
+  leetcodeProfile   String?
+  githubProfile     String?
+}
