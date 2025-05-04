@@ -8,7 +8,7 @@ dotenv.config();
 
 
 
-let tempUsers = new Map(); // temporary in-memory storage (use Redis or DB for production)
+let tempUsers = new Map(); 
 
 export const register = async (req, res) => {
     const { username, email, password, name } = req.body;
@@ -32,7 +32,7 @@ export const register = async (req, res) => {
             password: hashedPassword,
             name,
             otp,
-            expiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
+            expiresAt: Date.now() + 24 * 60 * 60 * 1000, 
         });
 
         const otpEmail = generateEmailTemplate("otp", {
@@ -52,7 +52,7 @@ export const register = async (req, res) => {
             message: "OTP sent to your email. Verify to complete registration.",
         });
     } catch (error) {
-        console.error("Register Error:", error);
+        
         res.status(500).json({ error: "Failed to initiate registration" });
     }
 };
@@ -85,7 +85,7 @@ export const verifyOtp = async (req, res) => {
             },
         });
 
-        tempUsers.delete(email); 
+        tempUsers.delete(email);
 
         const welcomeEmail = generateEmailTemplate("welcome", {
             name: newUser.name,
@@ -191,74 +191,74 @@ export const login = async (req, res) => {
 
 export const sendVerifyOtp = async (req, res) => {
     try {
-      const { email } = req.body;
-  
-      if (!email) {
-        return res.status(400).json({ error: "Email is required" });
-      }
-  
-      const tempUser = tempUsers.get(email);
-  
-      if (tempUser) {
-        // Resend OTP to temp user (user hasn't verified yet)
-        const otp = String(Math.floor(100000 + Math.random() * 900000));
-        tempUser.otp = otp;
-        tempUser.expiresAt = Date.now() + 24 * 60 * 60 * 1000;
-  
-        const otpEmail = generateEmailTemplate("otp", {
-          name: tempUser.name,
-          otp,
-          expires: "24 hours",
-        });
-  
-        await transporter.sendMail({
-          from: process.env.SENDER_EMAIL,
-          to: email,
-          subject: otpEmail.subject,
-          html: otpEmail.html,
-        });
-  
-        return res.status(200).json({ message: "OTP resent to your email." });
-      }
-      else{
-      const user = await db.user.findUnique({ where: { email } });
-      if (!user) {
-        return res.status(400).json({ error: "User not found. Please register again." });
-      }
-  
-      if (user.IsVerified) {
-        return res.status(400).json({ message: "User already verified." });
-      }
-  
-      // User exists in DB but not verified — resend OTP
-      const otp = String(Math.floor(100000 + Math.random() * 900000));
-  
-      await db.user.update({
-        where: { email },
-        data: {
-          VerificationToken: otp,
-          VerifyOtpExpireAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-        },
-      });
-  
-      const mailOptions = {
-        from: process.env.SENDER_EMAIL,
-        to: email,
-        subject: "Verify Your Account",
-        text: `Your OTP is ${otp}`,
-      };
-  
-      await transporter.sendMail(mailOptions);
-  
-      res.status(200).json({ message: "OTP resent to your email." });
-    }
-  
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ error: "Email is required" });
+        }
+
+        const tempUser = tempUsers.get(email);
+
+        if (tempUser) {
+            // Resend OTP to temp user (user hasn't verified yet)
+            const otp = String(Math.floor(100000 + Math.random() * 900000));
+            tempUser.otp = otp;
+            tempUser.expiresAt = Date.now() + 24 * 60 * 60 * 1000;
+
+            const otpEmail = generateEmailTemplate("otp", {
+                name: tempUser.name,
+                otp,
+                expires: "24 hours",
+            });
+
+            await transporter.sendMail({
+                from: process.env.SENDER_EMAIL,
+                to: email,
+                subject: otpEmail.subject,
+                html: otpEmail.html,
+            });
+
+            return res.status(200).json({ message: "OTP resent to your email." });
+        }
+        else {
+            const user = await db.user.findUnique({ where: { email } });
+            if (!user) {
+                return res.status(400).json({ error: "User not found. Please register again." });
+            }
+
+            if (user.IsVerified) {
+                return res.status(400).json({ message: "User already verified." });
+            }
+
+            // User exists in DB but not verified — resend OTP
+            const otp = String(Math.floor(100000 + Math.random() * 900000));
+
+            await db.user.update({
+                where: { email },
+                data: {
+                    VerificationToken: otp,
+                    VerifyOtpExpireAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+                },
+            });
+
+            const mailOptions = {
+                from: process.env.SENDER_EMAIL,
+                to: email,
+                subject: "Verify Your Account",
+                text: `Your OTP is ${otp}`,
+            };
+
+            await transporter.sendMail(mailOptions);
+
+            res.status(200).json({ message: "OTP resent to your email." });
+        }
+
     } catch (error) {
-      console.error("Error in sendVerifyOtp:", error);
-      res.status(500).json({ error: "Failed to send OTP" });
+        console.error("Error in sendVerifyOtp:", error);
+        res.status(500).json({ error: "Failed to send OTP" });
     }
-  };
-  
+};
+
 
 
 export const logout = async (req, res) => {
@@ -310,13 +310,13 @@ export const forgetpassword = async (req, res) => {
         const resetEmail = generateEmailTemplate("reset-password", {
             otp: resetToken,
             expires: "10 minutes",
-          });
-          await transporter.sendMail({
+        });
+        await transporter.sendMail({
             from: process.env.SENDER_EMAIL,
             to: email,
             subject: resetEmail.subject,
             html: resetEmail.html,
-          });
+        });
 
 
         console.log(`Reset link: http://localhost:3000/reset-password/${resetToken}`);
